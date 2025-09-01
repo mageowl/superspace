@@ -8,11 +8,19 @@
     nixpkgs,
   }: let
     supportedSystems = ["x86_64-linux"];
-    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+    forAllSystems = cb: nixpkgs.lib.genAttrs supportedSystems (system: cb pkgsFor.${system});
     pkgsFor = nixpkgs.legacyPackages;
   in {
-    packages = forAllSystems (system: {
-      default = pkgsFor.${system}.callPackage ./nix {};
+    packages = forAllSystems (pkgs: {
+      default = pkgs.callPackage ./. {};
+    });
+
+    devShells = forAllSystems (pkgs: {
+      default = pkgs.mkShell {
+        name = "superspace-shell";
+        nativeBuildInputs = [pkgs.pkg-config];
+        buildInputs = [pkgs.glib];
+      };
     });
   };
 }

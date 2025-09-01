@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error, fs, io};
+use std::{fs, io};
 
 use clap::Parser;
 use config::Config;

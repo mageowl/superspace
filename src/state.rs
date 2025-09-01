@@ -360,7 +360,19 @@ impl<'conf> State<'conf> {
             Action::Exit => self.should_exit = true,
             Action::LaunchApp(path_buf) => {
                 #[cfg(feature = "launch")]
-                {}
+                {
+                    use gio::{AppLaunchContext, DesktopAppInfo, prelude::AppInfoExt};
+
+                    let Some(app) = DesktopAppInfo::from_filename(&path_buf) else {
+                        return;
+                    };
+                    match app.launch(&[], None::<&AppLaunchContext>) {
+                        Ok(()) => self.should_exit = true,
+                        Err(e) => {
+                            self.state_enum = StateEnum::Error(format!("failed to launch app: {e}"))
+                        }
+                    };
+                }
                 #[cfg(not(feature = "launch"))]
                 {
                     self.state_enum = StateEnum::Error(String::from(

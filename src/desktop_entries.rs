@@ -1,5 +1,6 @@
 use std::{borrow::Cow, env, ffi::OsStr, fs};
 
+use gio::{DesktopAppInfo, prelude::AppInfoExt};
 use lazy_regex::regex_captures;
 
 use crate::config::{Action, ListItem};
@@ -28,19 +29,12 @@ pub fn get_desktop_entries() -> Result<Vec<ListItem>, String> {
             };
             let path = file.path();
             if path.extension().is_some_and(|o| o == "desktop") {
-                let Ok(contents) = fs::read_to_string(&path) else {
+                let Some(info) = DesktopAppInfo::from_filename(&path) else {
                     eprintln!("skipped a file");
                     continue;
                 };
-                let name = match regex_captures!(r#"\nName=([^\n]+)"#, &contents) {
-                    Some((_, name)) => Cow::Borrowed(name),
-                    None => path
-                        .file_name()
-                        .map(OsStr::to_string_lossy)
-                        .unwrap_or(Cow::Borrowed("")),
-                };
                 entries.push(ListItem {
-                    name: name.into_owned(),
+                    name: info.name().to_string(),
                     action: Action::LaunchApp(path),
                 });
             }

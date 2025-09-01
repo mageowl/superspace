@@ -1,7 +1,5 @@
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer, de};
 use std::{collections::HashMap, path::PathBuf};
-
-mod deser_commands;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -9,8 +7,24 @@ pub struct Config {
     pub general: GeneralConfig,
     #[serde(default)]
     pub variables: HashMap<String, String>,
-    #[serde(deserialize_with = "deser_commands::deserialize")]
+    #[serde(deserialize_with = "deserialize_commands")]
     pub command: HashMap<String, (UserCommand, usize)>,
+}
+
+pub(super) fn deserialize_commands<'de, D: Deserializer<'de, Error = E>, E: de::Error>(
+    deser: D,
+) -> Result<HashMap<String, (UserCommand, usize)>, D::Error> {
+    let vec: Vec<UserCommand> = Vec::deserialize(deser)?;
+    let mut map = HashMap::new();
+
+    for (i, cmd) in vec.into_iter().enumerate() {
+        if map.contains_key(&cmd.prefix) {
+            return Err(E::custom(format!("duplicate command {}", cmd.prefix)));
+        }
+        map.insert(cmd.prefix.clone(), (cmd, i));
+    }
+
+    Ok(map)
 }
 
 #[derive(Default, Deserialize, Debug)]
