@@ -1,0 +1,18 @@
+[package]
+name = "superspace"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.41", features = ["derive"] }
+dirs = "6.0.0"
+gio = { version = "0.21.1", optional = true }
+lazy-regex = "3.4.1"
+nucleo = "0.5.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.143"
+toml = "0.9.5"
+
+[features]
+default = ["launch"]
+launch = ["dep:gio"]
