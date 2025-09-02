@@ -154,7 +154,7 @@ impl<'conf> State<'conf> {
                 filtered,
                 prefix_len,
             } => {
-                if self.input.len() <= *prefix_len {
+                if self.input.len() < *prefix_len {
                     self.state_enum = StateEnum::MainMenu {
                         items: &self.config.command,
                         filtered: Some(State::get_prefix_matches(
@@ -169,7 +169,7 @@ impl<'conf> State<'conf> {
                 }
             }
             StateEnum::Prompt { prefix_len, .. } => {
-                if self.input.len() <= *prefix_len {
+                if self.input.len() < *prefix_len {
                     self.state_enum = StateEnum::MainMenu {
                         items: &self.config.command,
                         filtered: Some(State::get_prefix_matches(
@@ -371,7 +371,7 @@ impl<'conf> State<'conf> {
                         Err(e) => {
                             self.state_enum = StateEnum::Error(format!("failed to launch app: {e}"))
                         }
-                    };
+                    }
                 }
                 #[cfg(not(feature = "launch"))]
                 {
