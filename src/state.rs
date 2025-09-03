@@ -46,6 +46,7 @@ pub(crate) struct State<'conf> {
 
     pub should_exit: bool,
     cold_run: bool,
+    max_items: Option<usize>,
 
     temp_variables: HashMap<&'conf str, Cow<'conf, str>>,
     loaded_menus: HashMap<&'conf String, &'static Submenu>,
@@ -58,6 +59,7 @@ impl<'conf> State<'conf> {
         config: &'conf Config,
         apps: Option<&'conf Vec<ListItem>>,
         cold_run: bool,
+        max_items: Option<usize>,
     ) -> Self {
         Self {
             state_enum: StateEnum::MainMenu {
@@ -71,6 +73,7 @@ impl<'conf> State<'conf> {
 
             should_exit: false,
             cold_run,
+            max_items,
 
             temp_variables: HashMap::new(),
             loaded_menus: HashMap::new(),
@@ -486,9 +489,19 @@ impl Display for State<'_> {
                     || {
                         let mut vec: Vec<_> = items.values().collect();
                         vec.sort_by_key(|(_, i)| *i);
-                        stringify(vec.into_iter().map(|(v, _)| v))
+                        stringify(
+                            vec.into_iter()
+                                .take(self.max_items.unwrap_or(usize::MAX))
+                                .map(|(v, _)| v),
+                        )
                     },
-                    |v| stringify(v.iter().filter_map(|(k, _)| items.get(*k).map(|(c, _)| c))),
+                    |v| {
+                        stringify(
+                            v.iter()
+                                .take(self.max_items.unwrap_or(usize::MAX))
+                                .filter_map(|(k, _)| items.get(*k).map(|(c, _)| c)),
+                        )
+                    },
                 );
                 write!(
                     f,
@@ -550,8 +563,21 @@ impl Display for State<'_> {
                     }
                 }
                 let items = filtered.as_ref().map_or_else(
-                    || stringify(items.iter().map(|item| &item.name)),
-                    |f| stringify(f.iter().map(|(item, _)| &item.name)),
+                    || {
+                        stringify(
+                            items
+                                .iter()
+                                .take(self.max_items.unwrap_or(usize::MAX))
+                                .map(|item| &item.name),
+                        )
+                    },
+                    |f| {
+                        stringify(
+                            f.iter()
+                                .take(self.max_items.unwrap_or(usize::MAX))
+                                .map(|(item, _)| &item.name),
+                        )
+                    },
                 );
 
                 write!(

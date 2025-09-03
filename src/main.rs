@@ -15,6 +15,8 @@ struct Cli {
     config: Option<String>,
     #[arg(short, long = "var")]
     variables: Vec<String>,
+    #[arg(short = 'n', long)]
+    max_items: Option<usize>,
     #[arg(long)]
     cold_run: bool,
 }
@@ -55,7 +57,7 @@ fn main() {
                 None
             };
 
-            let mut state = state::State::new(&config, apps.as_ref(), cli.cold_run);
+            let mut state = state::State::new(&config, apps.as_ref(), cli.cold_run, cli.max_items);
             let mut api_input = String::new();
 
             while !state.should_exit {
