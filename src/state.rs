@@ -133,7 +133,7 @@ impl<'conf> State<'conf> {
         }
     }
 
-    pub(crate) fn process_delete(&mut self) {
+    pub(crate) fn process_backspace(&mut self) {
         if self.input.pop().is_none() {
             return;
         }
@@ -165,8 +165,12 @@ impl<'conf> State<'conf> {
                             self.config.command.iter(),
                         )),
                     }
-                } else if !self.input.is_empty() {
-                    *filtered = Some(State::get_matches(&self.input, &mut self.matcher, *items));
+                } else if self.input.len() > *prefix_len {
+                    *filtered = Some(State::get_matches(
+                        &self.input[*prefix_len..],
+                        &mut self.matcher,
+                        *items,
+                    ));
                 } else {
                     *filtered = None;
                 }

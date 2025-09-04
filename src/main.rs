@@ -70,7 +70,7 @@ fn main() {
                     break;
                 }
                 match api_input.as_str() {
-                    "backspace\n" => state.process_delete(),
+                    "backspace\n" => state.process_backspace(),
                     "enter\n" => state.process_enter(),
                     _ => state.process_input(api_input.chars().next().unwrap()),
                 }
